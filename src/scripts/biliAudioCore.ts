@@ -98,9 +98,73 @@ export interface RequestConfig {
   maxAttempts?: number;
 }
 
+export interface SongsByBvidsPageOptions {
+  /**
+   * Start index in `bvids`.
+   * Example: 0 for first page, 20 for second page when limit=20.
+   */
+  offset: number;
+
+  /**
+   * Number of BV items to resolve in this page.
+   * This is BV-count based, not song-count based.
+   */
+  limit: number;
+
+  /**
+   * Metadata fetch concurrency for this page.
+   * This method clamps it to 1..2 to reduce 403/429 risk.
+   * Default is 2.
+   */
+  concurrency?: number;
+
+  /**
+   * Stop the page batch immediately when a 403/429 occurs.
+   * Default true.
+   */
+  stopOnRateLimit?: boolean;
+
+  /**
+   * Wait time after 403/429 before returning.
+   * Helps avoid immediate repeated throttling.
+   * Default 1200ms.
+   */
+  cooldownMs?: number;
+}
+
+export type SongsByBvidsPageStoppedReason = 'rate_limited';
+
+export interface SongsByBvidsPageResult {
+  /** Flattened songs for this page (a BV may contain multiple parts) */
+  songs: BiliSong[];
+  /** BV page start index used for this request */
+  offset: number;
+  /** BV page size used for this request */
+  limit: number;
+  /** Next offset to request */
+  nextOffset: number;
+  /** Whether there are remaining BV ids after this page */
+  hasMore: boolean;
+  /** Total unique BV count in this loading session */
+  totalBvids: number;
+  /** BV ids that failed in this page */
+  failedBvids: string[];
+  /** Whether this page ended early */
+  stopped: boolean;
+  /** Why this page stopped early */
+  stoppedReason?: SongsByBvidsPageStoppedReason;
+}
+
 export interface AudioUrlCache {
   get(key: string): Promise<string | undefined> | string | undefined;
   set(key: string, value: string): Promise<void> | void;
+}
+
+export interface SongMetadataCache {
+  /** Cache key is recommended to be the normalized bvid */
+  get(key: string): Promise<BiliSong[] | undefined> | BiliSong[] | undefined;
+  /** Cache value is all song entries derived from one bvid */
+  set(key: string, value: BiliSong[]): Promise<void> | void;
 }
 
 export interface CoreLogger {
@@ -142,6 +206,9 @@ export interface BiliCoreOptions {
   /** Max page safety limit for multi-page APIs. Default 100 */
   maxPages?: number;
 
+  /** Optional cache for song metadata in lazy loading */
+  metadataCache?: SongMetadataCache;
+
   /** Optional simple cache for resolved audio URL */
   audioUrlCache?: AudioUrlCache;
 
@@ -164,6 +231,28 @@ export interface BiliAudioCore {
 
   /** Fetch all songs (metadata only) from any source */
   getSongsFromSource(source: BiliSource, config?: RequestConfig): Promise<BiliSong[]>;
+
+  /**
+   * Lazy-loading helper (step 1): fetch only BV ids from a source.
+   *
+   * Typical flow:
+   * 1) getBvidsFromSource(source)
+   * 2) getSongsByBvidsPage(bvids, { offset, limit })
+   * 3) resolveSongAudioUrl(song) when user clicks play
+   */
+  getBvidsFromSource(source: BiliSource, config?: RequestConfig): Promise<string[]>;
+
+  /**
+   * Lazy-loading helper (step 2): fetch one metadata page by BV list.
+   *
+   * This method only resolves metadata for the current BV page.
+   * It does NOT request playurl.
+   */
+  getSongsByBvidsPage(
+    bvids: string[],
+    options: SongsByBvidsPageOptions,
+    config?: RequestConfig,
+  ): Promise<SongsByBvidsPageResult>;
 
   /** Resolve final playable audio URL by bvid/cid */
   resolveAudioUrl(input: ResolveAudioUrlInput, config?: RequestConfig): Promise<ResolveAudioUrlResult>;
@@ -298,6 +387,8 @@ const DEFAULTS = {
   MAX_ATTEMPTS: 2,
   RETRY_BASE_DELAY_MS: 250,
   MAX_PAGES: 100,
+  LAZY_PAGE_CONCURRENCY: 2,
+  LAZY_PAGE_COOLDOWN_MS: 1200,
 };
 
 const NUMERIC_PATTERN = /^\d+$/;
@@ -648,6 +739,112 @@ export function createBiliAudioCore(options: BiliCoreOptions = {}): BiliAudioCor
     }
   };
 
+  const getBvidsFromSource = async (source: BiliSource, config?: RequestConfig): Promise<string[]> => {
+    switch (source.type) {
+      case 'bvid':
+        return [normalizeBvidOrThrow(source.bvid)];
+      case 'fav':
+        return fetchFavBvids(source.mid, config);
+      case 'series':
+        return fetchSeriesBvids(source.mid, source.sid, config);
+      case 'collection':
+        return fetchCollectionBvids(source.mid, source.sid, config);
+      default:
+        throw new BiliCoreError('UNSUPPORTED_SOURCE', `Unsupported source type: ${(source as { type?: string }).type || 'unknown'}`);
+    }
+  };
+
+  const getSongsByBvidWithCache = async (bvid: string, config?: RequestConfig): Promise<BiliSong[]> => {
+    const normalized = normalizeBvidOrThrow(bvid);
+    const cached = await options.metadataCache?.get(normalized);
+    if (cached && cached.length) return cached;
+
+    const info = await fetchVideoInfo(normalized, config);
+    const songs = videoInfoToSongs(normalized, info);
+    if (songs.length) {
+      await options.metadataCache?.set(normalized, songs);
+    }
+    return songs;
+  };
+
+  const getSongsByBvidsPage = async (
+    bvids: string[],
+    pageOptions: SongsByBvidsPageOptions,
+    config?: RequestConfig,
+  ): Promise<SongsByBvidsPageResult> => {
+    const uniqueBvids = dedupePreserveOrder(bvids.map((value) => String(value || '').trim()).filter(Boolean));
+    const totalBvids = uniqueBvids.length;
+    const offset = Math.max(0, Math.floor(pageOptions.offset));
+    const limit = Math.max(1, Math.floor(pageOptions.limit));
+    const stopOnRateLimit = pageOptions.stopOnRateLimit ?? true;
+    const cooldownMs = Math.max(0, pageOptions.cooldownMs ?? DEFAULTS.LAZY_PAGE_COOLDOWN_MS);
+    const concurrency = Math.max(1, Math.min(2, Math.floor(pageOptions.concurrency ?? DEFAULTS.LAZY_PAGE_CONCURRENCY)));
+
+    if (!totalBvids || offset >= totalBvids) {
+      return {
+        songs: [],
+        offset,
+        limit,
+        nextOffset: Math.min(offset + limit, totalBvids),
+        hasMore: false,
+        totalBvids,
+        failedBvids: [],
+        stopped: false,
+      };
+    }
+
+    const end = Math.min(offset + limit, totalBvids);
+    const pageBvids = uniqueBvids.slice(offset, end);
+    const pageResults: BiliSong[][] = new Array(pageBvids.length).fill([] as BiliSong[]);
+    const failedBvids: string[] = [];
+    let stopped = false;
+    let stoppedReason: SongsByBvidsPageStoppedReason | undefined;
+    let nextIndex = 0;
+
+    const runWorker = async () => {
+      while (true) {
+        if (stopped) return;
+
+        const current = nextIndex;
+        nextIndex += 1;
+        if (current >= pageBvids.length) return;
+
+        const bvid = pageBvids[current];
+        try {
+          pageResults[current] = await getSongsByBvidWithCache(bvid, config);
+        } catch (error) {
+          failedBvids.push(bvid);
+          const normalized = normalizeRequestError(error, '/x/web-interface/view');
+          logWarn('lazy page metadata request failed', { bvid, error: normalized });
+
+          if (stopOnRateLimit && isRateLimitError(normalized)) {
+            stopped = true;
+            stoppedReason = 'rate_limited';
+            return;
+          }
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, pageBvids.length) }, () => runWorker()));
+
+    if (stopped && stoppedReason === 'rate_limited' && cooldownMs > 0) {
+      await sleep(cooldownMs);
+    }
+
+    return {
+      songs: pageResults.flat(),
+      offset,
+      limit,
+      nextOffset: end,
+      hasMore: end < totalBvids,
+      totalBvids,
+      failedBvids,
+      stopped,
+      stoppedReason,
+    };
+  };
+
   const resolveAudioUrl = async (input: ResolveAudioUrlInput, config?: RequestConfig): Promise<ResolveAudioUrlResult> => {
     const bvid = normalizeBvidOrThrow(input.bvid);
     const cid = input.cid ? String(input.cid) : await fetchCidByBvid(bvid, config);
@@ -810,6 +1007,8 @@ export function createBiliAudioCore(options: BiliCoreOptions = {}): BiliAudioCor
     parseSourceOrThrow,
     getSongsByBvid,
     getSongsFromSource,
+    getBvidsFromSource,
+    getSongsByBvidsPage,
     resolveAudioUrl,
     resolveSongAudioUrl,
     refreshSongs,
@@ -864,6 +1063,52 @@ console.log(playback.url);
 
 const refresh = await core.refreshSongs(source, oldSongs);
 console.log(refresh.added, refresh.removed);
+
+## 6) Lazy loading for large favorite/collection sources
+
+const source = core.parseSourceOrThrow(input);
+
+// Step 1: fetch BV list only
+const bvids = await core.getBvidsFromSource(source);
+
+// Step 2: load first metadata page only
+let offset = 0;
+const pageSize = 20;
+
+let page1 = await core.getSongsByBvidsPage(bvids, {
+  offset,
+  limit: pageSize,
+  concurrency: 2,
+  stopOnRateLimit: true,
+  cooldownMs: 1200,
+});
+
+renderSongs(page1.songs);
+offset = page1.nextOffset;
+
+// Step 3: load next page on scroll
+if (page1.hasMore) {
+  const page2 = await core.getSongsByBvidsPage(bvids, { offset, limit: pageSize });
+  appendSongs(page2.songs);
+  offset = page2.nextOffset;
+}
+
+// Step 4: resolve playurl only when user clicks one song
+const playback = await core.resolveSongAudioUrl(clickedSong);
+console.log(playback.url);
+
+## 7) Optional metadata cache hook (e.g. IndexedDB)
+
+const coreWithCache = createBiliAudioCore({
+  metadataCache: {
+    async get(bvid) {
+      return await readSongsFromIndexedDb(bvid); // return BiliSong[] | undefined
+    },
+    async set(bvid, songs) {
+      await writeSongsToIndexedDb(bvid, songs);
+    },
+  },
+});
 `;
 
 /* -------------------------------------------------------------------------- */
@@ -936,6 +1181,12 @@ function isRetryableError(error: unknown): boolean {
   }
 
   return false;
+}
+
+function isRateLimitError(error: unknown): boolean {
+  if (!(error instanceof BiliCoreError)) return false;
+  if (error.code !== 'HTTP_ERROR') return false;
+  return error.status === 403 || error.status === 429;
 }
 
 function computeBackoffDelay(baseDelayMs: number, attempt: number): number {
