@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --background: 10 10 10;
+    --foreground: 255 255 255;
+    --card: 255 255 255;
+    --card-alpha: 0.05;
+    --border: 255 255 255;
+    --border-alpha: 0.15;
+    --shadow: 0 0 0;
+    --shadow-alpha: 0.25;
+    --radius-round: 100px;
+    --radius-normal: 20px;
+    --radius-small: 10px;
+    --page-padding-x: 25px;
+    --card-padding: 10px;
+    --card-gap: 15px;
+    --blur-component: 15px;
+    --shadow-component: 0 4px 5px rgba(0, 0, 0, 0.25);
+    --font-page-title: 24px;
+    --font-page-subtitle: 16px;
+    --font-action: 14px;
+    --font-small: 12px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: theme('colors.background');
+    overscroll-behavior: none;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-sans text-foreground antialiased;
+    margin: 0;
+    overscroll-behavior-y: none;
+    background-image:
+      radial-gradient(circle at top, rgba(10, 132, 255, 0.16), transparent 28%),
+      radial-gradient(circle at 80% 20%, rgba(191, 90, 242, 0.14), transparent 24%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(10, 10, 10, 0));
+    background-color: #0a0a0a;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@layer utilities {
+  .safe-area-px {
+    padding-left: max(theme('spacing.page-x'), env(safe-area-inset-left));
+    padding-right: max(theme('spacing.page-x'), env(safe-area-inset-right));
+  }
+
+  .safe-area-pt {
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+
+  .safe-area-pb {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .glass-surface {
+    @apply border border-border bg-card bg-glass-depth shadow-component backdrop-blur-component;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hover-lift {
+    transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    border-color: rgb(255 255 255 / 0.22);
+    background-color: rgb(255 255 255 / 0.07);
+  }
+}
