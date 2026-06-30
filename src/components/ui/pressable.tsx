@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 const pressableVariants = cva(
-  'inline-flex items-center justify-center rounded-round border border-border bg-card/90 px-4 py-2 text-action text-foreground shadow-component backdrop-blur-component select-none transition-colors disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-round border border-border bg-card/90 px-4 py-2 text-action text-foreground shadow-component backdrop-blur-component select-none transform-gpu will-change-transform transition-colors disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -35,8 +35,8 @@ export const Pressable = React.forwardRef<HTMLButtonElement, PressableProps>(
     return (
       <motion.button
         ref={ref}
-        whileTap={{ scale: 0.97 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        whileTap={{ scale: 0.93, y: 1.5, opacity: 0.9 }}
+        transition={{ type: 'spring', stiffness: 850, damping: 38, mass: 0.4 }}
         className={cn(pressableVariants({ variant, size }), className)}
         {...props}
       >
