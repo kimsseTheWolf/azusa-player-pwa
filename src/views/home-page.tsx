@@ -16,7 +16,7 @@ export function HomePage() {
       headerSlot={
         <Avatar
           pressable
-          size={48}
+          size={44}
           src="https://avatars.githubusercontent.com/u/583231?v=4"
           alt="用户头像"
           ariaLabel="打开个人信息"
