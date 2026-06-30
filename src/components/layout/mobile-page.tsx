@@ -30,7 +30,9 @@ export function MobilePage({
             <p className="text-page-subtitle text-foreground/68">{subtitle}</p>
           ) : null}
         </div>
-        {headerSlot}
+        {headerSlot ? (
+          <div className="flex shrink-0 items-start justify-end">{headerSlot}</div>
+        ) : null}
       </header>
 
       <div className="flex flex-col gap-card-gap">{children}</div>

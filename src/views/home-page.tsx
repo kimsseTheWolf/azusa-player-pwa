@@ -4,12 +4,25 @@ import { ActionInput } from '@/components/ui/action-input'
 import { ContentCard } from '@/components/ui/content-card'
 import { VideoListItem } from '@/components/player/video-list-item'
 import { Pressable } from '@/components/ui/pressable'
+import { Avatar } from '@/components/ui/avatar'
 
 export function HomePage() {
   const [query, setQuery] = useState('')
 
   return (
-    <MobilePage title="首页" subtitle="今天想听点什么呢？">
+    <MobilePage
+      title="首页"
+      subtitle="今天想听点什么呢？"
+      headerSlot={
+        <Avatar
+          pressable
+          size={48}
+          src="https://avatars.githubusercontent.com/u/583231?v=4"
+          alt="用户头像"
+          ariaLabel="打开个人信息"
+        />
+      }
+    >
       <>
         <ContentCard
           title="立刻开始收听！"
