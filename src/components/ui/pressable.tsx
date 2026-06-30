@@ -10,6 +10,7 @@ const pressableVariants = cva(
       variant: {
         glass: 'glass-surface hover-lift',
         ghost: 'border-transparent bg-transparent shadow-none',
+        text: 'min-h-0 rounded-none border-transparent bg-transparent px-0 py-0 shadow-none backdrop-blur-none',
       },
       size: {
         default: 'min-h-11',

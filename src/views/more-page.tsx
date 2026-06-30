@@ -1,5 +1,5 @@
-import { MobilePage } from '@/components/layout/mobile-page'
+import { TabPage } from '@/components/layout/tab-page'
 
 export function MorePage() {
-  return <MobilePage title="更多" subtitle="设置、关于与其他功能" />
+  return <TabPage title="更多" subtitle="设置、关于与其他功能" />
 }
