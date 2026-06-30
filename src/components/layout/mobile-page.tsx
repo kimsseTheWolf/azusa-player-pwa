@@ -1,6 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react'
-import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { TabPage } from '@/components/layout/tab-page'
 
 type MobilePageProps = PropsWithChildren<{
   title: string
@@ -17,25 +16,8 @@ export function MobilePage({
   children,
 }: MobilePageProps) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: 'easeOut' }}
-      className={cn('flex flex-col gap-5 pt-4', className)}
-    >
-      <header className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-page-title tracking-[-0.02em] text-foreground">{title}</p>
-          {subtitle ? (
-            <p className="text-page-subtitle text-foreground/68">{subtitle}</p>
-          ) : null}
-        </div>
-        {headerSlot ? (
-          <div className="flex shrink-0 items-start justify-end">{headerSlot}</div>
-        ) : null}
-      </header>
-
-      <div className="flex flex-col gap-card-gap">{children}</div>
-    </motion.section>
+    <TabPage title={title} subtitle={subtitle} trailing={headerSlot} className={className}>
+      {children}
+    </TabPage>
   )
 }

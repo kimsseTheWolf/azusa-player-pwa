@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MobilePage } from '@/components/layout/mobile-page'
+import { TabPage } from '@/components/layout/tab-page'
 import { ActionInput } from '@/components/ui/action-input'
 import { ContentCard } from '@/components/ui/content-card'
 import { VideoListItem } from '@/components/player/video-list-item'
@@ -10,10 +10,10 @@ export function HomePage() {
   const [query, setQuery] = useState('')
 
   return (
-    <MobilePage
+    <TabPage
       title="首页"
       subtitle="今天想听点什么呢？"
-      headerSlot={
+      trailing={
         <Avatar
           pressable
           size={44}
@@ -27,11 +27,7 @@ export function HomePage() {
         <ContentCard
           title="立刻开始收听！"
           actions={
-            <Pressable
-              variant="ghost"
-              className="min-h-0 rounded-none border-0 bg-transparent px-0 py-0 text-[14px] font-semibold text-system-blue !shadow-none !backdrop-blur-none"
-              type="button"
-            >
+            <Pressable variant="text" className="text-system-blue" type="button">
               知道啦！下次不再提醒
             </Pressable>
           }
@@ -121,6 +117,6 @@ export function HomePage() {
           />
         </ContentCard>
       </>
-    </MobilePage>
+    </TabPage>
   )
 }
