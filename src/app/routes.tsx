@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { matchPath, useLocation } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { HomePage } from '@/views/home-page'
 import { LibraryPage } from '@/views/library-page'
 import { MorePage } from '@/views/more-page'
@@ -26,21 +26,26 @@ const routes: RouteRecord[] = [
   { path: '/', type: 'tab', element: <HomePage /> },
 ]
 
-function resolveRoute(pathname: string) {
-  return (
-    routes.find((route) => matchPath({ path: route.path, end: true }, pathname)) ?? routes[routes.length - 1]
-  )
-}
-
 export function AppRoutes() {
   const location = useLocation()
-  const route = resolveRoute(location.pathname)
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <RouteTransitionHost key={location.pathname} type={route.type}>
-        {route.element}
-      </RouteTransitionHost>
+      <Routes location={location} key={location.pathname}>
+        {routes.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={<RouteTransitionHost type={route.type}>{route.element}</RouteTransitionHost>}
+          />
+        ))}
+        <Route
+          path="*"
+          element={<RouteTransitionHost type="tab">
+            <HomePage />
+          </RouteTransitionHost>}
+        />
+      </Routes>
     </AnimatePresence>
   )
 }
