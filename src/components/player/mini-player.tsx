@@ -1,4 +1,4 @@
-import { Pause, SkipBack, SkipForward, Waves } from 'lucide-react'
+import { Pause, Waves } from 'lucide-react'
 import { Pressable } from '@/components/ui/pressable'
 
 export function MiniPlayer() {
@@ -10,22 +10,22 @@ export function MiniPlayer() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-action text-foreground">Now Playing Placeholder</p>
-          <p className="truncate text-small text-foreground/64">
+          <p className="truncate text-action text-foreground text-[12px]">Now Playing Placeholder</p>
+          <p className="truncate text-small text-foreground/64 text-[12px]">
             Mock metadata only, no playback logic attached.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Pressable variant="ghost" size="icon" aria-label="Previous track" type="button">
+          {/* <Pressable variant="ghost" size="icon" aria-label="Previous track" type="button">
             <SkipBack className="h-4 w-4" />
-          </Pressable>
+          </Pressable> */}
           <Pressable size="icon" aria-label="Pause" type="button">
             <Pause className="h-4 w-4" />
           </Pressable>
-          <Pressable variant="ghost" size="icon" aria-label="Next track" type="button">
+          {/* <Pressable variant="ghost" size="icon" aria-label="Next track" type="button">
             <SkipForward className="h-4 w-4" />
-          </Pressable>
+          </Pressable> */}
         </div>
       </div>
     </section>

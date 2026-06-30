@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MobilePage } from '@/components/layout/mobile-page'
 import { ActionInput } from '@/components/ui/action-input'
 import { ContentCard } from '@/components/ui/content-card'
+import { VideoListItem } from '@/components/player/video-list-item'
 import { Pressable } from '@/components/ui/pressable'
 
 export function HomePage() {
@@ -34,7 +35,77 @@ export function HomePage() {
           />
         </ContentCard>
         <ContentCard title="最近播放">
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
 
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
+          <VideoListItem
+            title="【早稻叽】连麦后的超强状态下播歌！《圆》+《Wonder..."
+            uploader="单推叽叽的墨霖喵"
+            duration="03:45"
+          />
         </ContentCard>
       </>
     </MobilePage>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { motion } from 'framer-motion'
+import { motion, type HTMLMotionProps } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 const pressableVariants = cva(
@@ -28,15 +28,28 @@ export type PressableProps = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd'
 > &
-  VariantProps<typeof pressableVariants>
+  VariantProps<typeof pressableVariants> & {
+    motionWhileTap?: HTMLMotionProps<'button'>['whileTap']
+    motionTransition?: HTMLMotionProps<'button'>['transition']
+  }
 
 export const Pressable = React.forwardRef<HTMLButtonElement, PressableProps>(
-  ({ className, variant, size, children, ...props }, ref) => {
+  ({
+    className,
+    variant,
+    size,
+    children,
+    motionWhileTap,
+    motionTransition,
+    ...props
+  }, ref) => {
     return (
       <motion.button
         ref={ref}
-        whileTap={{ scale: 0.93, y: 1.5, opacity: 0.9 }}
-        transition={{ type: 'spring', stiffness: 850, damping: 38, mass: 0.4 }}
+        whileTap={motionWhileTap ?? { scale: 0.93, y: 1.5, opacity: 0.9 }}
+        transition={
+          motionTransition ?? { type: 'spring', stiffness: 850, damping: 38, mass: 0.4 }
+        }
         className={cn(pressableVariants({ variant, size }), className)}
         {...props}
       >
