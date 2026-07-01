@@ -1,22 +1,16 @@
 import { type PropsWithChildren } from 'react'
-import { useLocation, matchPath } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { BottomChrome } from '@/mobile/navigation/bottom-chrome'
-import { routeMetaList } from '@/mobile/navigation/route-config'
+import { resolveRouteMeta } from '@/mobile/navigation/route-config'
 
 type MobileShellProps = PropsWithChildren<{
   className?: string
 }>
 
-function getCurrentRouteMeta(pathname: string) {
-  return routeMetaList.find((meta) =>
-    matchPath({ path: meta.path, end: true }, pathname)
-  )
-}
-
 export function MobileShell({ children, className }: MobileShellProps) {
   const location = useLocation()
-  const currentMeta = getCurrentRouteMeta(location.pathname)
+  const currentMeta = resolveRouteMeta(location.pathname)
   const showBottomChrome = currentMeta?.showBottomChrome ?? true
 
   return (

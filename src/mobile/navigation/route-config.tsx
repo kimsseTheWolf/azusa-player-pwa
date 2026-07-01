@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { matchPath } from 'react-router-dom'
 import { HomePage } from '@/views/home-page'
 import { LibraryPage } from '@/views/library-page'
 import { MorePage } from '@/views/more-page'
@@ -6,8 +7,8 @@ import { PlaylistPage } from '@/views/playlist-page'
 import { SettingsPage } from '@/views/settings-page'
 import { SettingsStoragePage } from '@/views/settings-storage-page'
 
-type RouteType = 'tab' | 'stack'
-type TabId = 'home' | 'library' | 'more'
+export type RouteType = 'tab' | 'stack'
+export type TabId = 'home' | 'library' | 'more'
 
 export type MobileRouteMeta = {
   path: string
@@ -58,3 +59,7 @@ export const routeMetaList: MobileRouteMeta[] = [
     showBottomChrome: false,
   },
 ]
+
+export function resolveRouteMeta(pathname: string) {
+  return routeMetaList.find((meta) => matchPath({ path: meta.path, end: true }, pathname))
+}
