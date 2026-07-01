@@ -20,7 +20,7 @@ export function MobileShell({ children, className }: MobileShellProps) {
   const showBottomChrome = currentMeta?.showBottomChrome ?? true
 
   return (
-    <div className={cn('h-screen h-dvh overflow-hidden bg-background text-foreground', className)}>
+    <div className={cn('relative isolate h-screen h-dvh overflow-hidden bg-background text-foreground', className)}>
       <div className="relative mx-auto h-full w-full max-w-[430px]">
         <main
           className={cn(
