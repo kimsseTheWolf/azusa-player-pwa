@@ -1,23 +1,26 @@
 import { Ellipsis, Globe, Library } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Pressable } from '@/components/ui/pressable'
 import { cn } from '@/lib/utils'
+import { resolveRouteMeta } from '@/mobile/navigation/route-config'
+import { useMobileNavigation } from '@/mobile/navigation/use-mobile-navigation'
 
 const items = [
-  { label: '首页', icon: Globe, to: '/' },
-  { label: '资料库', icon: Library, to: '/library' },
-  { label: '更多', icon: Ellipsis, to: '/more' },
+  { label: '首页', icon: Globe, to: '/', tabId: 'home' },
+  { label: '资料库', icon: Library, to: '/library', tabId: 'library' },
+  { label: '更多', icon: Ellipsis, to: '/more', tabId: 'more' },
 ] as const
 
 export function BottomTabBar() {
   const location = useLocation()
-  const navigate = useNavigate()
+  const mobileNav = useMobileNavigation()
+  const currentTabId = resolveRouteMeta(location.pathname)?.tabId
 
   return (
     <nav className="glass-surface mx-auto w-fit rounded-[26px] px-1 py-1.5">
       <ul className="flex items-stretch gap-0">
-        {items.map(({ label, icon: Icon, to }) => {
-          const isActive = location.pathname === to
+        {items.map(({ label, icon: Icon, to, tabId }) => {
+          const isActive = currentTabId ? currentTabId === tabId : location.pathname === to
 
           return (
           <li key={label} className="w-[78px]">
@@ -29,7 +32,7 @@ export function BottomTabBar() {
               )}
               aria-label={label}
               type="button"
-              onClick={() => navigate(to)}
+              onClick={() => mobileNav.switchTab(to)}
             >
               <Icon className="h-4 w-4" strokeWidth={2.2} />
               <span className="text-small">{label}</span>
