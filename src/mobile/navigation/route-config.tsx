@@ -2,6 +2,9 @@ import type { ReactElement } from 'react'
 import { HomePage } from '@/views/home-page'
 import { LibraryPage } from '@/views/library-page'
 import { MorePage } from '@/views/more-page'
+import { PlaylistPage } from '@/views/playlist-page'
+import { SettingsPage } from '@/views/settings-page'
+import { SettingsStoragePage } from '@/views/settings-storage-page'
 
 type RouteType = 'tab' | 'stack'
 type TabId = 'home' | 'library' | 'more'
@@ -12,19 +15,6 @@ export type MobileRouteMeta = {
   element: ReactElement
   tabId?: TabId
   showBottomChrome: boolean
-}
-
-type StackPlaceholderPageProps = {
-  title: string
-}
-
-function StackPlaceholderPage({ title }: StackPlaceholderPageProps) {
-  return (
-    <section className="flex min-h-[40vh] flex-col gap-3 pt-4">
-      <h1 className="text-page-title tracking-[-0.02em] text-foreground">{title}</h1>
-      <p className="text-page-subtitle text-foreground/68">占位页面，后续将接入完整的 stack 页面模板。</p>
-    </section>
-  )
 }
 
 export const routeMetaList: MobileRouteMeta[] = [
@@ -52,19 +42,19 @@ export const routeMetaList: MobileRouteMeta[] = [
   {
     path: '/library/playlist/:playlistId',
     type: 'stack',
-    element: <StackPlaceholderPage title="歌单详情" />,
+    element: <PlaylistPage />,
     showBottomChrome: false,
   },
   {
     path: '/more/settings',
     type: 'stack',
-    element: <StackPlaceholderPage title="设置" />,
+    element: <SettingsPage />,
     showBottomChrome: false,
   },
   {
     path: '/more/settings/storage',
     type: 'stack',
-    element: <StackPlaceholderPage title="存储设置" />,
+    element: <SettingsStoragePage />,
     showBottomChrome: false,
   },
 ]
