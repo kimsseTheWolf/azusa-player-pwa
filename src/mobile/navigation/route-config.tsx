@@ -49,6 +49,7 @@ export const routeMetaList: MobileRouteMeta[] = [
     type: 'stack',
     depth: 1,
     element: <PlaylistPage />,
+    tabId: 'library',
     showBottomChrome: false,
   },
   {
@@ -56,6 +57,7 @@ export const routeMetaList: MobileRouteMeta[] = [
     type: 'stack',
     depth: 1,
     element: <SettingsPage />,
+    tabId: 'more',
     showBottomChrome: false,
   },
   {
@@ -63,6 +65,7 @@ export const routeMetaList: MobileRouteMeta[] = [
     type: 'stack',
     depth: 2,
     element: <SettingsStoragePage />,
+    tabId: 'more',
     showBottomChrome: false,
   },
 ]

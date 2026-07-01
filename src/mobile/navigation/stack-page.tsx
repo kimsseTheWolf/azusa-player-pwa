@@ -1,8 +1,8 @@
 import type { PropsWithChildren, ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { CompactNavHeader, LargePageHeader } from '@/mobile/navigation/nav-header'
 import { PageContent } from '@/mobile/navigation/page-content'
+import { useMobileNavigation } from '@/mobile/navigation/use-mobile-navigation'
 
 type StackPageProps = PropsWithChildren<{
   title: string
@@ -24,15 +24,10 @@ export function StackPage({
   showCompactHeader = false,
   children,
 }: StackPageProps) {
-  const navigate = useNavigate()
+  const mobileNav = useMobileNavigation()
 
   const handleBack = () => {
-    if (backTo) {
-      navigate(backTo)
-      return
-    }
-
-    navigate(-1)
+    mobileNav.back(backTo)
   }
 
   return (

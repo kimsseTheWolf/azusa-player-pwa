@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import type { MobileRouteMeta } from '@/mobile/navigation/route-config'
 import { resolveRouteMeta, routeMetaList } from '@/mobile/navigation/route-config'
+import { consumeNavigationIntent, type NavigationIntent } from '@/mobile/navigation/navigation-intent'
 
 type StackDirection = -1 | 1
 type TransitionKind = 'none' | 'stack'
@@ -25,7 +26,7 @@ const transitionVariants = {
     }
 
     return {
-      opacity: 0,
+      opacity: 1,
       x: '0%',
     }
   },
@@ -42,7 +43,7 @@ const transitionVariants = {
     }
 
     return {
-      opacity: 0,
+      opacity: 1,
       x: '0%',
     }
   },
@@ -54,10 +55,19 @@ function getStackDirection(currentDepth: number, previousDepth: number): StackDi
 
 export function RouteTransition() {
   const location = useLocation()
+  const navigationType = useNavigationType()
   const previousMetaRef = useRef<MobileRouteMeta | null>(null)
+  const consumedPathRef = useRef<string | null>(null)
+  const intentRef = useRef<NavigationIntent>(null)
+
+  if (consumedPathRef.current !== location.pathname) {
+    consumedPathRef.current = location.pathname
+    intentRef.current = consumeNavigationIntent()
+  }
 
   const currentMeta = resolveRouteMeta(location.pathname) ?? routeMetaList[0]
   const previousMeta = previousMetaRef.current
+  const intent = intentRef.current
   const currentType = currentMeta.type
   const previousType = previousMeta?.type ?? null
 
@@ -66,12 +76,32 @@ export function RouteTransition() {
       return 'none'
     }
 
+    if (intent === 'tab') {
+      return 'none'
+    }
+
+    if (intent === 'replace') {
+      return 'none'
+    }
+
+    if (intent === 'stack-push') {
+      return 'stack'
+    }
+
+    if (intent === 'app-back') {
+      return 'stack'
+    }
+
+    if (navigationType === 'POP' && intent == null) {
+      return 'none'
+    }
+
     if (currentType === 'tab' && previousType === 'tab') {
       return 'none'
     }
 
     return 'stack'
-  }, [currentType, previousMeta, previousType])
+  }, [currentType, intent, navigationType, previousMeta, previousType])
 
   const direction = getStackDirection(currentMeta.depth, previousMeta?.depth ?? currentMeta.depth)
 
