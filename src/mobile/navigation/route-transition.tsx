@@ -73,22 +73,24 @@ export function RouteTransition() {
   }, [currentType])
 
   return (
-    <AnimatePresence initial={false}>
-      <motion.div
-        key={location.pathname}
-        custom={{ routeType, direction }}
-        variants={transitionVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={{
-          duration: routeType === 'stack' ? 0.22 : 0.18,
-          ease: IOS_EASING,
-        }}
-        className="will-change-transform"
-      >
-        <Outlet />
-      </motion.div>
-    </AnimatePresence>
+    <div className="relative h-full overflow-hidden">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={location.pathname}
+          custom={{ routeType, direction }}
+          variants={transitionVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{
+            duration: routeType === 'stack' ? 0.22 : 0.18,
+            ease: IOS_EASING,
+          }}
+          className="absolute inset-0 overflow-y-auto will-change-transform"
+        >
+          <Outlet />
+        </motion.div>
+      </AnimatePresence>
+    </div>
   )
 }
