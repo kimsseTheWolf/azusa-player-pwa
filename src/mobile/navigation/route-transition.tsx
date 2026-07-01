@@ -2,21 +2,22 @@ import { useEffect, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Outlet, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import type { MobileRouteMeta, RouteType } from '@/mobile/navigation/route-config'
+import type { MobileRouteMeta } from '@/mobile/navigation/route-config'
 import { resolveRouteMeta, routeMetaList } from '@/mobile/navigation/route-config'
 
 type StackDirection = -1 | 1
+type TransitionKind = 'none' | 'stack'
 
 type TransitionContext = {
-  routeType: RouteType
+  transitionKind: TransitionKind
   direction: StackDirection
 }
 
 const IOS_EASING: [number, number, number, number] = [0.32, 0.72, 0, 1]
 
 const transitionVariants = {
-  initial: ({ routeType, direction }: TransitionContext) => {
-    if (routeType === 'stack') {
+  initial: ({ transitionKind, direction }: TransitionContext) => {
+    if (transitionKind === 'stack') {
       return {
         opacity: 1,
         x: direction > 0 ? '100%' : '-28%',
@@ -32,8 +33,8 @@ const transitionVariants = {
     opacity: 1,
     x: '0%',
   },
-  exit: ({ routeType, direction }: TransitionContext) => {
-    if (routeType === 'stack') {
+  exit: ({ transitionKind, direction }: TransitionContext) => {
+    if (transitionKind === 'stack') {
       return {
         opacity: 1,
         x: direction > 0 ? '-28%' : '100%',
@@ -60,13 +61,17 @@ export function RouteTransition() {
   const currentType = currentMeta.type
   const previousType = previousMeta?.type ?? null
 
-  const routeType = useMemo<RouteType>(() => {
-    if (currentType === 'stack' || previousType === 'stack') {
-      return 'stack'
+  const transitionKind = useMemo<TransitionKind>(() => {
+    if (!previousMeta) {
+      return 'none'
     }
 
-    return 'tab'
-  }, [currentType, previousType])
+    if (currentType === 'tab' && previousType === 'tab') {
+      return 'none'
+    }
+
+    return 'stack'
+  }, [currentType, previousMeta, previousType])
 
   const direction = getStackDirection(currentMeta.depth, previousMeta?.depth ?? currentMeta.depth)
 
@@ -79,13 +84,13 @@ export function RouteTransition() {
       <AnimatePresence initial={false}>
         <motion.div
           key={location.pathname}
-          custom={{ routeType, direction }}
+          custom={{ transitionKind, direction }}
           variants={transitionVariants}
           initial="initial"
           animate="animate"
           exit="exit"
           transition={{
-            duration: routeType === 'stack' ? 0.22 : 0.18,
+            duration: transitionKind === 'stack' ? 0.22 : 0,
             ease: IOS_EASING,
           }}
           className={cn(
