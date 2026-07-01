@@ -17,10 +17,7 @@ export function MobileShell({ children, className }: MobileShellProps) {
     <div className={cn('relative isolate h-screen h-dvh overflow-hidden bg-background text-foreground', className)}>
       <div className="relative mx-auto h-full w-full max-w-[430px]">
         <main
-          className={cn(
-            'relative h-full overflow-hidden px-[15px] pt-[max(16px,env(safe-area-inset-top))]',
-            showBottomChrome ? 'pb-[188px]' : 'pb-[max(16px,env(safe-area-inset-bottom))]'
-          )}
+          className="relative h-full overflow-hidden px-[15px] pt-[max(16px,env(safe-area-inset-top))]"
         >
           {children}
         </main>

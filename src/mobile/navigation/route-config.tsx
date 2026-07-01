@@ -13,6 +13,7 @@ export type TabId = 'home' | 'library' | 'more'
 export type MobileRouteMeta = {
   path: string
   type: RouteType
+  depth: number
   element: ReactElement
   tabId?: TabId
   showBottomChrome: boolean
@@ -22,6 +23,7 @@ export const routeMetaList: MobileRouteMeta[] = [
   {
     path: '/',
     type: 'tab',
+    depth: 0,
     element: <HomePage />,
     tabId: 'home',
     showBottomChrome: true,
@@ -29,6 +31,7 @@ export const routeMetaList: MobileRouteMeta[] = [
   {
     path: '/library',
     type: 'tab',
+    depth: 0,
     element: <LibraryPage />,
     tabId: 'library',
     showBottomChrome: true,
@@ -36,6 +39,7 @@ export const routeMetaList: MobileRouteMeta[] = [
   {
     path: '/more',
     type: 'tab',
+    depth: 0,
     element: <MorePage />,
     tabId: 'more',
     showBottomChrome: true,
@@ -43,18 +47,21 @@ export const routeMetaList: MobileRouteMeta[] = [
   {
     path: '/library/playlist/:playlistId',
     type: 'stack',
+    depth: 1,
     element: <PlaylistPage />,
     showBottomChrome: false,
   },
   {
     path: '/more/settings',
     type: 'stack',
+    depth: 1,
     element: <SettingsPage />,
     showBottomChrome: false,
   },
   {
     path: '/more/settings/storage',
     type: 'stack',
+    depth: 2,
     element: <SettingsStoragePage />,
     showBottomChrome: false,
   },

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Outlet, useLocation, useNavigationType } from 'react-router-dom'
-import type { RouteType } from '@/mobile/navigation/route-config'
-import { resolveRouteMeta } from '@/mobile/navigation/route-config'
+import { Outlet, useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import type { MobileRouteMeta, RouteType } from '@/mobile/navigation/route-config'
+import { resolveRouteMeta, routeMetaList } from '@/mobile/navigation/route-config'
 
 type StackDirection = -1 | 1
 
@@ -18,13 +19,13 @@ const transitionVariants = {
     if (routeType === 'stack') {
       return {
         opacity: 1,
-        x: direction > 0 ? '22%' : '-8%',
+        x: direction > 0 ? '100%' : '-28%',
       }
     }
 
     return {
       opacity: 0,
-      x: '2%',
+      x: '0%',
     }
   },
   animate: {
@@ -35,28 +36,29 @@ const transitionVariants = {
     if (routeType === 'stack') {
       return {
         opacity: 1,
-        x: direction > 0 ? '-12%' : '22%',
+        x: direction > 0 ? '-28%' : '100%',
       }
     }
 
     return {
       opacity: 0,
-      x: '-2%',
+      x: '0%',
     }
   },
 }
 
-function getStackDirection(navigationType: ReturnType<typeof useNavigationType>): StackDirection {
-  return navigationType === 'POP' ? -1 : 1
+function getStackDirection(currentDepth: number, previousDepth: number): StackDirection {
+  return currentDepth >= previousDepth ? 1 : -1
 }
 
 export function RouteTransition() {
   const location = useLocation()
-  const navigationType = useNavigationType()
-  const previousTypeRef = useRef<RouteType | null>(null)
+  const previousMetaRef = useRef<MobileRouteMeta | null>(null)
 
-  const currentType = resolveRouteMeta(location.pathname)?.type ?? 'tab'
-  const previousType = previousTypeRef.current
+  const currentMeta = resolveRouteMeta(location.pathname) ?? routeMetaList[0]
+  const previousMeta = previousMetaRef.current
+  const currentType = currentMeta.type
+  const previousType = previousMeta?.type ?? null
 
   const routeType = useMemo<RouteType>(() => {
     if (currentType === 'stack' || previousType === 'stack') {
@@ -66,11 +68,11 @@ export function RouteTransition() {
     return 'tab'
   }, [currentType, previousType])
 
-  const direction = getStackDirection(navigationType)
+  const direction = getStackDirection(currentMeta.depth, previousMeta?.depth ?? currentMeta.depth)
 
   useEffect(() => {
-    previousTypeRef.current = currentType
-  }, [currentType])
+    previousMetaRef.current = currentMeta
+  }, [currentMeta])
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -86,7 +88,12 @@ export function RouteTransition() {
             duration: routeType === 'stack' ? 0.22 : 0.18,
             ease: IOS_EASING,
           }}
-          className="absolute inset-0 overflow-y-auto will-change-transform"
+          className={cn(
+            'absolute inset-0 overflow-y-auto bg-background will-change-transform',
+            currentMeta.showBottomChrome
+              ? 'pb-[max(96px,env(safe-area-inset-bottom))]'
+              : 'pb-[max(16px,env(safe-area-inset-bottom))]'
+          )}
         >
           <Outlet />
         </motion.div>
